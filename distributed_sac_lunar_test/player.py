@@ -61,7 +61,7 @@ class Player():
 
         self.device = self.cfg['device']
         self.reward_scale = self.cfg['reward_scale']
-        self.random_step = 500    
+        self.random_step = 500 if self.train_mode else 0
         self.print_period = print_period
         
         self.action_dim = 2
