@@ -10,7 +10,6 @@ import ray
 import os
 import metaworld
 
-
 MT1 = metaworld.MT1('pick-place-v2') # Construct the benchmark, sampling tasks
 train_classes = MT1.train_classes
 train_tasks = MT1.train_tasks
@@ -27,10 +26,7 @@ ray.init(num_cpus=num_cpus, num_gpus=num_gpus)
 
 GPU_NUM = 0
 device = torch.device(f'cuda:{GPU_NUM}' if torch.cuda.is_available() else 'cpu')
-cfg_path = 'cfg/MT1_Distributed_SAC.json'
-
-
-
+cfg_path = 'cfg/MT1_Distributed_SAC_cfg.json'
 
 networks = []
 if is_train:
@@ -56,13 +52,12 @@ else:
                 cfg_path, 
                 task_idx, 
                 train_mode=False, 
-                trained_actor_path='MT1_Distributed_SAC/saved_models/distributed_MT1_VSAC/checkpoint_700000.tar', 
+                trained_actor_path='saved_models/MT1_Distributed_VSAC/checkpoint_700000.tar', 
                 write_mode=False, 
                 render_mode=True, 
                 eval_episode_idx=20
             )
         )
-
 
 ray.get([network.run.remote() for network in networks])
 ray.shutdown()

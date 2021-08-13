@@ -56,14 +56,6 @@ class contextEncoder(nn.Module):
             embedding_header
         )
 
-        # self.embedding = nn.Sequential(
-        #         nn.Embedding(
-        #             num_embeddings=self.input_dim, embedding_dim=self.embedding_dim
-        #         ),
-        #         nn.ReLU(),
-        #     )
-        # self.embedding.apply(weights_init)
-
         # 3. mlp
         self.mlp = build_mlp(
             input_dim=self.embedding_dim,

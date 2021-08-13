@@ -33,8 +33,8 @@
         "device" : "cuda:0",
 
         "state_dim" : 39,
-        "pretrained_embedding_json_path" : "metadata/mt10_pretrained_embedding.json",
-        "task_name_json_path" : "metadata/mt10_ordered_task_name.json",
+        "pretrained_embedding_json_path" : "cfg/metadata/mt1_pretrained_embedding.json",
+        "task_name_json_path" : "cfg/metadata/mt1_ordered_task_name.json",
         "hidden_dims_contextEnc" : [50, 50],
         "embedding_dim_contextEnc" : 50,
         "output_dim_contextEnc" : 50,

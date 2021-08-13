@@ -22,12 +22,11 @@ ray.init(num_cpus=num_cpus, num_gpus=num_gpus)
 
 GPU_NUM = 0
 device = torch.device(f'cuda:{GPU_NUM}' if torch.cuda.is_available() else 'cpu')
-cfg_path = 'cfg/MT1_distributed_CARE_cfg.json'
+cfg_path = 'cfg/MT1_Distributed_CARE_cfg.json'
 
 MT1 = metaworld.MT1('pick-place-v2') # Construct the benchmark, sampling tasks
 train_classes = MT1.train_classes
 train_tasks = MT1.train_tasks
-
 
 task_idx_list = [0]
 
@@ -55,7 +54,7 @@ else:
                 cfg_path, 
                 task_idx_list, 
                 train_mode=False, 
-                trained_model_path='saved_models/MT1_distributed_CARE/checkpoint_750000.tar', 
+                trained_model_path='saved_models/MT1_Distributed_CARE/checkpoint_750000.tar', 
                 write_mode=False, 
                 render_mode=True, 
                 eval_episode_idx=40

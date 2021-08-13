@@ -20,7 +20,7 @@ ray.init(num_cpus=num_cpus, num_gpus=num_gpus)
 
 GPU_NUM = 0
 device = torch.device(f'cuda:{GPU_NUM}' if torch.cuda.is_available() else 'cpu')
-cfg_path = 'cfg/LunarLanderContinuous-v2_cfg.json'
+cfg_path = 'cfg/LunarLanderContinuous-v2_Distributed_SAC_cfg.json'
 
 env = gym.make('LunarLanderContinuous-v2') 
 
@@ -40,7 +40,7 @@ else:
                 cfg_path, 
                 task_idx, 
                 train_mode=False,
-                trained_actor_path='distributed_sac_lunar_test/saved_models/distributed_test/lunar_sac_checkpoint_165000.tar',
+                trained_actor_path='saved_models/LunarLander_Distributed_SAC/checkpoint_165000.tar',
                 render_mode=True,
                 write_mode=False
             )

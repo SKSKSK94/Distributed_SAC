@@ -76,16 +76,16 @@ class Learner():
         self.state_dim = 39
         self.action_bound = [-1.0, 1.0]
 
-        self.log_file = './log_distributed_MT1_VSAC/distributed_log.txt'
+        self.log_file = './log_MT1_Distributed_VSAC/MT1_Distributed_VSAC_log.txt'
 
-        self.save_model_path = 'saved_models/distributed_MT1_VSAC/'
+        self.save_model_path = 'saved_models/MT1_Distributed_VSAC/'
         self.save_period = save_period
         if not os.path.exists(self.save_model_path):
             os.makedirs(self.save_model_path)
 
         self.write_mode = write_mode
         if self.write_mode:
-            self.writer = SummaryWriter('./log_distributed_MT1_VSAC')
+            self.writer = SummaryWriter('./log_MT1_Distributed_VSAC')
 
     def build_model(self):
 
