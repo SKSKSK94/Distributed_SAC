@@ -22,4 +22,4 @@ Default loaded model is the trained `CARE(M)`.
 1. Success Rate
 <img src = "https://user-images.githubusercontent.com/73100569/130654451-6458293b-4be2-4f55-ae59-ae240a8566b7.png" width="500" height="300">
 2. Video
-![gitUploadGif](https://user-images.githubusercontent.com/73100569/130655417-e2795643-66a6-4eea-b37d-4f9ced7266ce.gif)
+<img src = "https://user-images.githubusercontent.com/73100569/130655417-e2795643-66a6-4eea-b37d-4f9ced7266ce.gif">
