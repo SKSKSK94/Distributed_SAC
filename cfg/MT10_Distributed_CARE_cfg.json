@@ -1,0 +1,51 @@
+{    
+    "use_modified_care" : true,
+
+    "num_tasks" : 10,
+    "device" : "cuda",
+    "buffer_size" : 1e6,
+    "reward_scale" : 1,
+    "batch_size" : 1280,
+    "log_alpha" : 0,
+    "tau" : 0.005,
+    "update_delay" : 6,
+    "random_step" : 5000,
+    "start_memory_len" : 5000,
+    "print_period_player" : 2,
+    "print_period_learner" : 10,
+    "gamma" : 0.99,
+    "max_episode_time" : 500,
+
+    "actor" : {
+        "state_dim" : 39,
+        "action_dim" : 4,
+        "action_bound" : [-1.0, 1.0],
+        "lr_actor" : 3e-4,
+        "actor_hidden_dim" : [400, 400, 400]
+    },
+
+    "critic" : {
+        "state_dim" : 39,
+        "action_dim" : 4,
+        "lr_critic" : 3e-4,
+        "critic_hidden_dim" : [400, 400, 400]
+    },    
+    
+    "encoder" : {
+        "state_dim" : 39,
+        "pretrained_embedding_json_path" : "cfg/metadata/mt10_pretrained_embedding.json",
+        "task_name_json_path" : "cfg/metadata/mt10_ordered_task_name.json",
+        "hidden_dims_contextEnc" : [50, 50],
+        "embedding_dim_contextEnc" : 50,
+        "output_dim_contextEnc" : 50,
+        "RoBERTa_embedding_dim" : 768,
+        "lr_contextEnc" : 3e-4,
+
+        "hidden_dims_mixtureEnc" : [50],
+        "output_dim_mixtureEnc" : 50,
+
+        "num_encoders" : 6,
+        "num_tasks" : 10,
+        "state_encoder_tau" : 0.05
+    }    
+}

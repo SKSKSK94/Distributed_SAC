@@ -76,7 +76,7 @@ class Learner():
         self.state_dim = 8
         self.action_bound = [-1.0, 1.0]
 
-        self.log_file = './log_distributed_test/test_log.txt'
+        self.log_file = './log/log_distributed_test/test_log.txt'
 
         self.save_model_path = 'saved_models/distributed_test/'
         self.save_period = save_period
@@ -85,7 +85,7 @@ class Learner():
 
         self.write_mode = write_mode
         if self.write_mode:
-            self.writer = SummaryWriter('./log_distributed_test')
+            self.writer = SummaryWriter('./log/log_distributed_test')
 
     def build_model(self):
 

@@ -86,7 +86,7 @@ class Learner():
       
         self.max_episode_time = int(self.cfg['max_episode_time']) # maximum episode time for the given environment
 
-        self.log_file = './log_MT1_Distributed_CARE/MT1_Distributed_CARE_log.txt'
+        self.log_file = './log/log_MT1_Distributed_CARE/MT1_Distributed_CARE_log.txt'
 
         self.save_model_path = 'saved_models/MT1_Distributed_CARE/'
         self.save_period = save_period
@@ -95,7 +95,7 @@ class Learner():
 
         self.write_mode = write_mode
         if self.write_mode:
-            self.writer = SummaryWriter('./log_MT1_Distributed_CARE')
+            self.writer = SummaryWriter('./log/log_MT1_Distributed_CARE')
 
     def build_model(self):
         self.context_encoder = contextEncoder(self.encoder_cfg)
