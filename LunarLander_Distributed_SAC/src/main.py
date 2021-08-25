@@ -1,30 +1,26 @@
 from player import Player
 from learner import Learner
-import torch
 import gym
-import numpy as np
-import random
-import time
 import ray
 import os
 
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
 num_cpus = 4
 num_gpus = 1
+
 # is_train = True
 is_train = False
 
-Player = ray.remote(num_cpus=1)(Player)
-Learner = ray.remote(num_cpus=2, num_gpus=0)(Learner)
+Player = ray.remote(num_cpus=1, num_gpus=0.1)(Player)
+Learner = ray.remote(num_cpus=2, num_gpus=0.3)(Learner)
 
 ray.init(num_cpus=num_cpus, num_gpus=num_gpus)
 
-GPU_NUM = 0
-device = torch.device(f'cuda:{GPU_NUM}' if torch.cuda.is_available() else 'cpu')
 cfg_path = 'cfg/LunarLanderContinuous-v2_Distributed_SAC_cfg.json'
 
 env = gym.make('LunarLanderContinuous-v2') 
-
-
 
 networks = []
 if is_train:    

@@ -1,6 +1,6 @@
 import json
-import torch
 import torch.nn as nn
+
 
 class Decoder(json.JSONDecoder):
     def decode(self, s):
@@ -20,15 +20,18 @@ class Decoder(json.JSONDecoder):
         else:
             return o
 
+
 def cfg_read(path):
     with open(path, 'r') as f:
         cfg = json.loads(f.read(), cls=Decoder)
     return cfg
 
+
 def weights_init(m):
     if isinstance(m, nn.Linear):
         nn.init.xavier_uniform_(m.weight, gain=1)
         nn.init.constant_(m.bias, 0)
+
 
 def build_mlp(input_dim, output_dim, hidden_dims):
     '''
@@ -51,4 +54,4 @@ def build_mlp(input_dim, output_dim, hidden_dims):
         )
     )
 
-    return nn.Sequential(*network)  
+    return nn.Sequential(*network)

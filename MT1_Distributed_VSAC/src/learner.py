@@ -4,23 +4,21 @@ import numpy as np
 import torch.optim as optim
 from replay_buffer import ReplayBuffer
 from model import Actor, Critic
-import random
 import itertools
 import os
 import json
-import collections
 import time
+from datetime import datetime
 from torch.utils.tensorboard import SummaryWriter
 
 from utils import Decoder
 
-import ray
 import redis
 import _pickle
 
 from logger import Logger
 
-# @ray.remote(num_gpus=0.5, num_cpus=1)
+
 class Learner():
     def __init__(self, 
             cfg_path,            
@@ -40,7 +38,13 @@ class Learner():
         self.to_device()
         self.build_optimizer()
 
-        self.memory = ReplayBuffer(buffer_size=self.buffer_size, batch_size=self.batch_size, seed=0, device=self.device, server=self.server)
+        self.memory = ReplayBuffer(
+            buffer_size=self.buffer_size,
+            batch_size=self.batch_size,
+            seed=0,
+            device=self.device,
+            server=self.server
+        )
         self.memory.start() # start thread's activity
 
         self.logger = Logger(writer=self.writer, server=self.server)
@@ -59,7 +63,7 @@ class Learner():
         self.gamma = self.cfg['gamma']
         self.lr_actor = self.cfg['lr_actor']
         self.lr_critic = self.cfg['lr_critic']
-        self.device = self.cfg['device']
+        self.device = torch.device(self.cfg['device'])
         self.batch_size = int(self.cfg['batch_size'])
         self.tau = self.cfg['tau']                     # soft update parameter
         self.reward_scale = self.cfg['reward_scale']
@@ -71,21 +75,29 @@ class Learner():
         self.critic_hidden_dim = self.cfg['critic_hidden_dim']
         self.total_step = 0
         self.episode_idx = 0
+        self.datetime = str(datetime.now())[:-7]
         
         self.action_dim = 4
         self.state_dim = 39
         self.action_bound = [-1.0, 1.0]
 
-        self.log_file = './log/log_MT1_Distributed_VSAC/MT1_Distributed_VSAC_log.txt'
+        self.log_file = './log/log_MT1_Distributed_VSAC/MT1_Distributed_VSAC_log_{}.txt'.format(
+            self.datetime
+        )
 
-        self.save_model_path = 'saved_models/MT1_Distributed_VSAC/'
+        self.save_model_path = 'saved_models/MT1_Distributed_VSAC/{}'.format(
+            self.datetime
+        )
+
         self.save_period = save_period
         if not os.path.exists(self.save_model_path):
             os.makedirs(self.save_model_path)
 
         self.write_mode = write_mode
         if self.write_mode:
-            self.writer = SummaryWriter('./log/log_MT1_Distributed_VSAC')
+            self.writer = SummaryWriter(
+                './log/log_MT1_Distributed_VSAC/{}'.format(self.datetime)
+            )
 
     def build_model(self):
 
@@ -209,7 +221,10 @@ class Learner():
 
         # Update policy by one step of gradient ascent
         sampled_actions, log_probs = self.actor.get_action_log_prob(states)
-        Q_min = torch.min(self.local_critic_1.forward(states, sampled_actions), self.local_critic_2.forward(states, sampled_actions))
+        Q_min = torch.min(
+            self.local_critic_1.forward(states, sampled_actions), 
+            self.local_critic_2.forward(states, sampled_actions)
+        )
         policy_loss = self.actor.cal_loss(log_probs, Q_min, alpha)
         policy_loss.backward(retain_graph=retain_graph)
         self.actor_optimizer.step()
@@ -265,7 +280,6 @@ class Learner():
         }
         return parameters
 
-
     def run(self):
         # initial parameter copy
         self.server.set('update_iteration', _pickle.dumps(-1))
@@ -284,7 +298,8 @@ class Learner():
         for update_iteration in itertools.count():
             update_iteration += self.episode_idx
 
-            if update_iteration % self.update_delay != 0 : continue
+            if update_iteration % self.update_delay != 0 : 
+                continue
             critic_loss, actor_loss = self.update()
 
             self.server.set('update_iteration', _pickle.dumps(update_iteration))
@@ -295,7 +310,11 @@ class Learner():
                 critic_loss_list.append(critic_loss)
                 self.push_log(update_iteration, np.mean(critic_loss_list), np.mean(actor_loss_list))
                 if update_iteration % self.print_period == 0:
-                    content = '[Learner] Update_iteration: {0:<6} \t | actor_loss : {1:5.3f} \t | critic_loss : {2:5.3f}'.format(update_iteration, np.mean(actor_loss_list), np.mean(critic_loss_list))
+                    content = '[Learner] Update_iteration: {0:<6} \t | actor_loss : {1:5.3f} \t | critic_loss : {2:5.3f}'.format(
+                        update_iteration, 
+                        np.mean(actor_loss_list), 
+                        np.mean(critic_loss_list)
+                    )
                     self.my_print(content)
                     actor_loss_list = []
                     critic_loss_list = []

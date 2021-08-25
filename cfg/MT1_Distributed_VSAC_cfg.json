@@ -1,0 +1,18 @@
+{    
+    "device" : "cuda",
+    "buffer_size" : 1e6,
+    "reward_scale" : 1,
+    "batch_size" : 1024,
+    "gamma" : 0.99,
+    "lr_actor" : 3e-4,
+    "lr_critic" : 3e-4,
+    "log_alpha" : 0,
+    "tau" : 0.005,
+    "update_delay" : 5,
+    "random_step" : 2500,
+    "start_memory_len" : 5000,
+    "print_period_player" : 2,
+    "print_period_learner" : 5,
+    "actor_hidden_dim" : [400, 400, 400],
+    "critic_hidden_dim" : [400, 400, 400]
+}

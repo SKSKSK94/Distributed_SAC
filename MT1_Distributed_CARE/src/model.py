@@ -1,13 +1,10 @@
-#%%
 import torch
 import torch.nn as nn
-import numpy as np
-import torch.optim as optim
-import math
 from torch.distributions import Normal
 from utils import weights_init, build_mlp
 
 from state_encoder import stateEncoder
+
 
 # continuous action space
 class Actor(nn.Module):
@@ -20,7 +17,7 @@ class Actor(nn.Module):
         self.encoder_cfg = encoder_cfg
         
         self.state_dim = int(actor_cfg['state_dim'])
-        self.mtobs_dim =  self.state_dim + encoder_cfg['num_tasks']
+        self.mtobs_dim = self.state_dim + encoder_cfg['num_tasks']
         self.policy_input_dim = encoder_cfg['output_dim_contextEnc'] + encoder_cfg['output_dim_mixtureEnc']
         self.action_dim = int(actor_cfg['action_dim'])
         self.action_bound = actor_cfg['action_bound']
@@ -119,7 +116,7 @@ class Critic(nn.Module):
         self.encoder_cfg = encoder_cfg
         
         self.state_dim = int(critic_cfg['state_dim'])
-        self.mtobs_dim =  self.state_dim + encoder_cfg['num_tasks']
+        self.mtobs_dim = self.state_dim + encoder_cfg['num_tasks']
         self.policy_input_dim = encoder_cfg['output_dim_contextEnc'] + encoder_cfg['output_dim_mixtureEnc']
         self.action_dim = int(critic_cfg['action_dim'])
 

@@ -1,22 +1,15 @@
 import torch
-import torch.nn as nn
 import numpy as np
-import torch.optim as optim
-from replay_buffer import ReplayBuffer
-from model import Actor, Critic
+from model import Actor
 import random
-import itertools
-import os
 import json
-import collections
 import time
-from torch.utils.tensorboard import SummaryWriter
 
 from utils import Decoder
 
-import ray
 import redis
 import _pickle
+
 
 class Player():
     def __init__(self,
@@ -52,7 +45,7 @@ class Player():
         self.to_device()
 
         if self.train_mode is False:
-            assert trained_actor_path != None, 'Since train mode is False, trained actor path is needed.'
+            assert trained_actor_path is not None, 'Since train mode is False, trained actor path is needed.'
             self.load_model(trained_actor_path)
 
     def cfg_read(self, path):
@@ -63,7 +56,7 @@ class Player():
     def set_cfg_parameters(self):
         self.update_iteration = -2
 
-        self.device = self.cfg['device']
+        self.device = torch.device(self.cfg['device'])
         self.reward_scale = self.cfg['reward_scale']
         self.random_step = int(self.cfg['random_step']) if self.train_mode else 0
         self.print_period = int(self.cfg['print_period_player'])
@@ -104,7 +97,7 @@ class Player():
 
         task = random.choice(self.train_tasks)
         self.env.set_task(task)
-        assert self.env != None, 'env is not set.'
+        assert self.env is not None, 'env is not set.'
 
     def trajectory_generator(self):
         """Tests whether a given policy solves an environment
@@ -198,14 +191,20 @@ class Player():
 
                 total_step += 1
 
-                if done: break
+                if done: 
+                    break
 
             episode_idx += 1
             episode_rewards.append(episode_reward)
             ts.append(t)
 
             if episode_idx % self.print_period == 0:
-                content = '[Player] Tot_step: {0:<6} \t | Episode: {1:<4} \t | Time: {2:5.2f} \t | Reward : {3:5.3f}'.format(total_step, episode_idx + 1, np.mean(ts), np.mean(episode_rewards))
+                content = '[Player] Tot_step: {0:<6} \t | Episode: {1:<4} \t | Time: {2:5.2f} \t | Reward : {3:5.3f}'.format(
+                    total_step,
+                    episode_idx + 1,
+                    np.mean(ts),
+                    np.mean(episode_rewards)
+                )
                 print(content)
                 if self.write_mode and self.train_mode:
                     reward_logs_data = (self.player_idx, total_step, np.mean(episode_rewards))

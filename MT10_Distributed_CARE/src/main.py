@@ -1,16 +1,11 @@
 from player import Player
 from learner import Learner
-import torch
-import gym
-import numpy as np
-import random
-import time
 import metaworld
 import ray
 import os
 
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 cfg_path = 'cfg/MT10_Distributed_CARE_cfg.json'
 MT10 = metaworld.MT10()

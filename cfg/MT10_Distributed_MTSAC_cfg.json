@@ -1,0 +1,34 @@
+{    
+    "use_weighted_loss" : true,
+
+    "num_tasks" : 10,
+    "device" : "cuda",
+    "buffer_size" : 1e6,
+    "reward_scale" : 1,
+    "batch_size" : 1280,
+    "log_alpha" : 0,
+    "tau" : 0.005,
+    "update_delay" : 6,
+    "random_step" : 5000,
+    "start_memory_len" : 5000,
+    "print_period_player" : 2,
+    "print_period_learner" : 10,
+    "gamma" : 0.99,
+    "max_episode_time" : 500,
+
+    "actor" : {
+        "state_dim" : 39,
+        "action_dim" : 4,
+        "action_bound" : [-1.0, 1.0],
+        "lr_actor" : 3e-4,
+        "actor_hidden_dim" : [400, 400, 400]
+    },
+
+    "critic" : {
+        "state_dim" : 39,
+        "action_dim" : 4,
+        "lr_critic" : 3e-4,
+        "critic_hidden_dim" : [400, 400, 400]
+    }   
+    
+}

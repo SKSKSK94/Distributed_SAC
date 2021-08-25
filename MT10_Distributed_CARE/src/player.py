@@ -1,24 +1,16 @@
 import torch
-import torch.nn as nn
 import numpy as np
-import torch.optim as optim
-from replay_buffers import ReplayBuffer
-from model import Actor, Critic
+from model import Actor
 import random
-import itertools
-import os
-import json
-import collections
 import time
-from torch.utils.tensorboard import SummaryWriter
 
-from utils import Decoder, cfg_read
+from utils import cfg_read
 
-import ray
 import redis
 import _pickle
 
 from context_encoder import contextEncoder
+
 
 class Player():
     def __init__(self, 
@@ -58,7 +50,7 @@ class Player():
         self.to_device()
 
         if self.train_mode is False:
-            assert trained_model_path != None, \
+            assert trained_model_path is not None, \
                 'Since train mode is False, trained actor path is needed.'
             self.load_model(trained_model_path)
 
@@ -114,7 +106,7 @@ class Player():
         task = random.choice(self.task_inital_state_dict[task_idx])
         self.env = self.envs_dict[task_idx]
         self.env.set_task(task)
-        assert self.env != None, 'env is not set.'
+        assert self.env is not None, 'env is not set.'
 
     def trajectory_generator(self, task_idx):
         """Tests whether a given policy solves an environment
@@ -247,7 +239,8 @@ class Player():
 
             self.task_total_step_dict[task_idx] += 1
 
-            if done: break
+            if done: 
+                break
 
         delta_total_step += self.task_total_step_dict[task_idx]
 
@@ -297,4 +290,3 @@ class Player():
                         self.server.rpush('success_rate', _pickle.dumps(success_rate_data))        
                     else:
                         print('[Task {}] Succes rate is {}'.format(task_idx, success_rate*100))
-            

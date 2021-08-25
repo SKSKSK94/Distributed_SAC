@@ -1,13 +1,11 @@
 from player import Player
 from learner import Learner
-import torch
-import gym
-import numpy as np
-import random
-import time
 import metaworld
 import ray
 import os
+
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 num_cpus = 14
 num_gpus = 1
@@ -20,8 +18,6 @@ Learner = ray.remote(num_cpus=2, num_gpus=0.3)(Learner)
 
 ray.init(num_cpus=num_cpus, num_gpus=num_gpus)
 
-GPU_NUM = 0
-device = torch.device(f'cuda:{GPU_NUM}' if torch.cuda.is_available() else 'cpu')
 cfg_path = 'cfg/MT1_Distributed_CARE_cfg.json'
 
 MT1 = metaworld.MT1('pick-place-v2') # Construct the benchmark, sampling tasks
@@ -63,4 +59,3 @@ else:
 
 ray.get([network.run.remote() for network in networks])
 ray.shutdown()
-

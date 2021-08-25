@@ -175,6 +175,7 @@ class Linear(nn.Module):
         else:
             return NotImplementedError()
 
+
 class feedForwardEncoder(nn.Module):
     def __init__(self,
         num_encoders,

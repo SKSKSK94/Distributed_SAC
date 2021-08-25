@@ -1,24 +1,16 @@
 import torch
-import torch.nn as nn
 import numpy as np
-import torch.optim as optim
-from replay_buffer import ReplayBuffer
-from model import Actor, Critic
+from model import Actor
 import random
-import itertools
-import os
-import json
-import collections
 import time
-from torch.utils.tensorboard import SummaryWriter
 
-from utils import Decoder, cfg_read
+from utils import cfg_read
 
-import ray
 import redis
 import _pickle
 
 from context_encoder import contextEncoder
+
 
 class Player():
     def __init__(self,
@@ -60,13 +52,13 @@ class Player():
         self.to_device()
 
         if self.train_mode is False:
-            assert trained_model_path != None, 'Since train mode is False, trained actor path is needed.'
+            assert trained_model_path is not None, 'Since train mode is False, trained actor path is needed.'
             self.load_model(trained_model_path)
 
     def set_cfg_parameters(self):
         self.update_iteration = -2
 
-        self.device = self.cfg['device']
+        self.device = torch.device(self.cfg['device'])
         self.reward_scale = self.cfg['reward_scale']
         self.random_step = int(self.cfg['random_step']) if self.train_mode else 0  
         self.print_period = int(self.cfg['print_period_player'])   
@@ -114,7 +106,7 @@ class Player():
         task = random.choice(self.task_inital_state_dict[task_idx])
         self.env = self.envs_dict[task_idx]
         self.env.set_task(task)
-        assert self.env != None, 'env is not set.'
+        assert self.env is not None, 'env is not set.'
 
     def trajectory_generator(self, task_idx):
         """Tests whether a given policy solves an environment
@@ -239,13 +231,12 @@ class Player():
 
             self.task_total_step_dict[task_idx] += 1
 
-            if done: break
+            if done:
+                break
 
         delta_total_step += self.task_total_step_dict[task_idx]
 
         return episode_reward, delta_total_step, t
-
-
 
     def run(self):
         total_step = 0
@@ -269,7 +260,13 @@ class Player():
 
             if episode_idx % self.print_period == 0:
                 for task_idx in self.task_idx_list:
-                    content = '[Player] Tot_step: {0:<6} \t | Episode: {1:<4} \t | Time: {2:5.2f} \t | Task: {3:<2} \t | Reward : {4:5.3f}'.format(total_step, episode_idx + 1, ts_dict[task_idx]/self.print_period, task_idx, episode_rewards_dict[task_idx]/self.print_period)
+                    content = '[Player] Tot_step: {0:<6} \t | Episode: {1:<4} \t | Time: {2:5.2f} \t | Task: {3:<2} \t | Reward : {4:5.3f}'.format(
+                        total_step,
+                        episode_idx + 1,
+                        ts_dict[task_idx]/self.print_period,
+                        task_idx,
+                        episode_rewards_dict[task_idx]/self.print_period
+                    )
                     print(content)
                 if self.write_mode:
                     for task_idx in self.task_idx_list:
@@ -291,4 +288,3 @@ class Player():
                         self.server.rpush('success_rate', _pickle.dumps(success_rate_data))        
                     else:
                         print('[Task {}] Succes rate is {}'.format(task_idx, success_rate*100))
-            

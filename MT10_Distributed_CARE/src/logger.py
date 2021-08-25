@@ -1,11 +1,10 @@
-import torch
 import threading
 import redis
 import _pickle
 import time
-import numpy as np
 from torch.utils.tensorboard import SummaryWriter
 from utils import cfg_read
+
 
 class Logger(threading.Thread):
     def __init__(self,

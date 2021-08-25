@@ -1,6 +1,6 @@
 {    
     "num_tasks" : 1,
-    "device" : "cuda:0",
+    "device" : "cuda",
     "buffer_size" : 1e6,
     "reward_scale" : 1,
     "batch_size" : 1024,

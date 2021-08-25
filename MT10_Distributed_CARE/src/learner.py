@@ -4,18 +4,14 @@ import numpy as np
 import torch.optim as optim
 from replay_buffers import ReplayBuffer
 from model import Actor, Critic
-import random
 import itertools
 import os
-import json
-import collections
 import time
 from datetime import datetime
 from torch.utils.tensorboard import SummaryWriter
 
-from utils import Decoder, cfg_read
+from utils import cfg_read
 
-import ray
 import redis
 import _pickle
 import copy
@@ -24,8 +20,9 @@ from logger import Logger
 
 from context_encoder import contextEncoder
 
+
 class Learner():
-    def __init__(self, 
+    def __init__(self,
             train_classes,
             train_tasks,
             cfg_path,
@@ -45,17 +42,17 @@ class Learner():
 
         self.server = redis.StrictRedis(host='localhost')
         for key in self.server.scan_iter():
-            self.server.delete(key)    
-            
+            self.server.delete(key)
+
         self.build_model()
         self.to_device()
         self.build_optimizer()
 
         self.memory = ReplayBuffer(
-            buffer_size=self.buffer_size, 
-            batch_size=self.batch_size, 
-            seed=0, 
-            device=self.device, 
+            buffer_size=self.buffer_size,
+            batch_size=self.batch_size,
+            seed=0,
+            device=self.device,
             server=self.server,
             num_tasks=self.num_tasks
         )
@@ -67,7 +64,7 @@ class Learner():
         if checkpoint_path is not None:
             self.load_checkpoint(checkpoint_path)
             print('######## load checkpoint completely ########')
-    
+
     def set_cfg_parameters(self, save_period, write_mode):
         self.gamma = self.cfg['gamma']
         self.lr_actor = self.actor_cfg['lr_actor']
@@ -75,10 +72,10 @@ class Learner():
         self.device = torch.device(self.cfg['device'])
         self.batch_size = int(self.cfg['batch_size'])
         self.tau = self.cfg['tau']                     # soft update parameter
-        self.reward_scale = self.cfg['reward_scale']    
+        self.reward_scale = self.cfg['reward_scale']
         self.start_memory_len = self.cfg['start_memory_len']
         self.buffer_size = int(self.cfg['buffer_size'])
-        self.num_tasks = int(self.cfg['num_tasks'])         #### MT SAC ####
+        self.num_tasks = int(self.cfg['num_tasks'])    #### MT SAC ####
         self.update_delay = int(self.cfg['update_delay'])
         self.print_period = int(self.cfg['print_period_learner']) * self.update_delay
         self.total_step = 0
@@ -87,12 +84,12 @@ class Learner():
         self.datetime = str(datetime.now())[:-7]
         self.use_modified_care = self.cfg['use_modified_care']
 
-        if self.use_modified_care:            
+        if self.use_modified_care:
             print('############## This is modified version of CARE ##############')
             print('############## 1. Use weighted loss             ##############')
             print('############## 2. Change the position of mlp    ##############')
-      
-        self.max_episode_time = int(self.cfg['max_episode_time']) 
+
+        self.max_episode_time = int(self.cfg['max_episode_time'])
 
         used_method_name = 'CARE(M)' if self.use_modified_care else 'CARE(O)'
 
@@ -100,7 +97,7 @@ class Learner():
             used_method_name,
             self.datetime
         )
-        
+
         self.save_model_path = 'saved_models/MT10_Distributed_CARE/{}/{}/'.format(
             used_method_name,
             self.datetime
@@ -120,42 +117,42 @@ class Learner():
         self.context_encoder = contextEncoder(self.encoder_cfg, self.use_modified_care)
 
         self.actor = Actor(self.actor_cfg, self.encoder_cfg, self.use_modified_care)
-        
+
         self.local_critic = Critic(self.critic_cfg, self.encoder_cfg, self.use_modified_care)
         self.target_critic = Critic(self.critic_cfg, self.encoder_cfg, self.use_modified_care)
-       
+
         self.H_bar = torch.tensor([-self.actor.action_dim]).to(self.device).float() # minimum entropy
         self.log_alpha = nn.Parameter(
             torch.tensor([float(self.cfg['log_alpha'])] * self.num_tasks,
-            requires_grad=True, 
+            requires_grad=True,
             device=self.device
             ).float()
-        ) 
+        )
         self.alpha = self.log_alpha.exp().detach()
 
         # tie encoders between actor and critic
-        self.soft_update(self.local_critic.state_encoder, self.actor.state_encoder, tau=1.0)    
+        self.soft_update(self.local_critic.state_encoder, self.actor.state_encoder, tau=1.0)
 
     def build_optimizer(self):
         # 1. context encoder optimizer
         self.context_encoder_optimizer = optim.Adam(
-            self.context_encoder.parameters(), 
+            self.context_encoder.parameters(),
             lr=self.encoder_cfg['lr_contextEnc']
         )
-        
+
         # 2. actor optimizer
         # Actor does not update its mixtures of encoders parameters
         # Actor get its mixtures of encoders parameters through tie(hard copy) from critic's one
         self.actor_optimizer = optim.Adam(
-            self.actor.mu_log_std_layer.parameters(), 
+            self.actor.mu_log_std_layer.parameters(),
             lr=self.lr_actor
         )
 
         # 3. critic optimizer
         self.critic_optimizer = optim.Adam(
-            self.local_critic.parameters(), 
+            self.local_critic.parameters(),
             lr=self.lr_critic
-        ) 
+        )
 
         # 4. log_alpha optimizer
         self.log_alpha_optimizer = optim.Adam([self.log_alpha], lr=self.lr_actor)
@@ -168,11 +165,11 @@ class Learner():
         ======
             local_model: PyTorch model (weights will be copied from)
             target_model: PyTorch model (weights will be copied to)
-            tau (float): interpolation parameter 
+            tau (float): interpolation parameter
         """
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
-    
+
     def my_print(self, content):
         with open(self.log_file, 'a') as writer:
             print(content)
@@ -186,7 +183,7 @@ class Learner():
             'context_encoder' : {k: v.cpu() for k, v in self.context_encoder.state_dict().items()},
             'context_encoder_optimizer' : self.context_encoder_optimizer.state_dict(),
 
-            'local_critic' : {k: v.cpu() for k, v in self.local_critic.state_dict().items()},          
+            'local_critic' : {k: v.cpu() for k, v in self.local_critic.state_dict().items()},   
             'critic_optimizer' : self.critic_optimizer.state_dict(),
 
             'target_critic' : {k: v.cpu() for k, v in self.target_critic.state_dict().items()},
@@ -196,10 +193,10 @@ class Learner():
 
             'log_alpha' : self.log_alpha.cpu(),
             'log_alpha_optimizer' : self.log_alpha_optimizer.state_dict(),
-            'alpha' : self.alpha.cpu()                
+            'alpha' : self.alpha.cpu()
         }
         torch.save(state, self.save_model_path+'checkpoint_{}.tar'.format(str(update_iteration))) 
-        
+
     def load_checkpoint(self, path):
         checkpoint = torch.load(path, map_location=self.device)
         self.update_iteration = checkpoint['update_iteration']
@@ -218,7 +215,7 @@ class Learner():
         self.log_alpha.data = checkpoint['log_alpha']
         self.log_alpha_optimizer.load_state_dict(checkpoint['log_alpha_optimizer'])
         self.alpha.data = checkpoint['alpha']
-        
+
     def to_device(self):        
         self.context_encoder.to(self.device)
         self.actor.to(self.device)
@@ -226,10 +223,10 @@ class Learner():
         self.target_critic.to(self.device)
 
     def push_log(self, update_iteration, critic_loss, actor_loss, entropy):
-        
+
         critic_loss_data = (update_iteration, critic_loss)
         self.server.rpush('critic_loss', _pickle.dumps(critic_loss_data))
-        
+
         actor_loss_data = (update_iteration, actor_loss)
         self.server.rpush('actor_loss', _pickle.dumps(actor_loss_data))
 
@@ -238,8 +235,8 @@ class Learner():
 
         alphas = self.log_alpha.exp().detach().cpu().numpy()
         alphas_data = (update_iteration, alphas)
-        self.server.rpush('alpha', _pickle.dumps(alphas_data))        
-            
+        self.server.rpush('alpha', _pickle.dumps(alphas_data))
+
     #### MT SAC ####
     def get_log_alpha(self, mtobss):
         '''
@@ -259,7 +256,7 @@ class Learner():
         log_alpha = self.log_alpha # self.log_alpha = (num_tasks, )
 
         # (batch_size, num_tasks) * (num_tasks, 1) -> (batch_size, 1)
-        log_alpha = torch.matmul(one_hots, log_alpha.unsqueeze(dim=0).t()) 
+        log_alpha = torch.matmul(one_hots, log_alpha.unsqueeze(dim=0).t())
 
         return log_alpha
     #### MT SAC ####
@@ -419,12 +416,11 @@ class Learner():
         }
         return parameters
 
-
     def run(self):
         # initial parameter copy
         self.server.set('update_iteration', _pickle.dumps(-1))
         self.server.set('parameters', _pickle.dumps(self.get_parameters())) # parameters for state_encoder, actor
-        
+
         self.wait_until_memoryReady()
         self.my_print('######################### Start train #########################')
 
@@ -438,7 +434,8 @@ class Learner():
         for update_iteration in itertools.count():            
             update_iteration = update_iteration + self.update_iteration if update_iteration == 0 else update_iteration
 
-            if update_iteration % self.update_delay != 0 : continue
+            if update_iteration % self.update_delay != 0 : 
+                continue
 
             critic_loss, actor_loss, entropy = self.update()
 
@@ -456,7 +453,11 @@ class Learner():
                     copy.deepcopy(entropy)
                 )
                 if update_iteration % self.print_period == 0:
-                    content = '[Learner] Update_iteration: {0:<6} \t | actor_loss : {1:5.3f} \t | critic_loss : {2:5.3f}'.format(update_iteration, np.mean(actor_loss_list), np.mean(critic_loss_list))
+                    content = '[Learner] Update_iteration: {0:<6} \t | actor_loss : {1:5.3f} \t | critic_loss : {2:5.3f}'.format(
+                        update_iteration,
+                        np.mean(actor_loss_list),
+                        np.mean(critic_loss_list)
+                    )
                     self.my_print(content)
                     actor_loss_list = []
                     critic_loss_list = []

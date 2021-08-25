@@ -1,6 +1,5 @@
 import numpy as np
 import random
-import copy
 from collections import namedtuple, deque
 
 import torch
@@ -65,7 +64,6 @@ class ReplayBuffer(threading.Thread):
 
             time.sleep(0.01)
 
-    
     def sample(self):
         """Randomly sample a batch of experiences from memory."""
         states_batch = []

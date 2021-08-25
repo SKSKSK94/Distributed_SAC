@@ -1,10 +1,7 @@
-#%%
 import torch
 import torch.nn as nn
-import numpy as np
-import torch.optim as optim
-import math
 from torch.distributions import Normal
+
 
 # continuous action space
 class Actor(nn.Module):
@@ -22,8 +19,7 @@ class Actor(nn.Module):
 
         self.layer_intermediate = nn.ModuleList(
             [nn.Linear(dim_in, dim_out) for dim_in, dim_out in zip(self.intermediate_dim_list[:-1], self.intermediate_dim_list[1:])]
-        )
-        
+        )        
        
         self.mu_log_std_layer = nn.Linear(self.intermediate_dim_list[-1], 2*self.action_dim)
 
@@ -33,7 +29,6 @@ class Actor(nn.Module):
         self.softplus = nn.Softplus()
 
         self.apply(self.weights_init_)
-
     
     def weights_init_(self, m):
         if isinstance(m, nn.Linear):
@@ -50,8 +45,7 @@ class Actor(nn.Module):
         mu, log_std = x[:, :self.action_dim], torch.clamp(x[:, self.action_dim:], -20, 2)
         std = torch.exp(log_std)
 
-        return mu, std
-    
+        return mu, std    
 
     def get_action_log_prob(self, state, stochstic=True):
         mu, std = self.forward(state) # mu = (batch, num_action), std = (batch, num_action)
@@ -115,12 +109,10 @@ class Critic(nn.Module):
 
         self.apply(self.weights_init_)
 
-    
     def weights_init_(self, m):
         if isinstance(m, nn.Linear):
             torch.nn.init.xavier_uniform_(m.weight, gain=1)
             torch.nn.init.constant_(m.bias, 0)
-
 
     def forward(self, state, action):
         

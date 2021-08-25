@@ -1,10 +1,10 @@
-import torch
+
 import threading
 import redis
 import _pickle
 import time
-import numpy as np
 from torch.utils.tensorboard import SummaryWriter
+
 
 class Logger(threading.Thread):
     def __init__(self,
@@ -88,4 +88,4 @@ class Logger(threading.Thread):
                 alpha_dict = {'task'+str(idx) : alpha_ for idx, alpha_ in enumerate(alphas)}
                 
                 with self.lock:
-                    self.writer.add_scalars('Alpha/alpha', alpha_dict, update_iteration) 
+                    self.writer.add_scalars('Alpha/alpha', alpha_dict, update_iteration)

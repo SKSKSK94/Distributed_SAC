@@ -1,26 +1,23 @@
 import torch
 import torch.nn as nn
-import numpy as np
 import torch.optim as optim
 from replay_buffer import ReplayBuffer
 from model import Actor, Critic
-import random
 import itertools
 import os
 import json
-import collections
 import time
+from datetime import datetime
 from torch.utils.tensorboard import SummaryWriter
 
 from utils import Decoder
 
-import ray
 import redis
 import _pickle
 
 from logger import Logger
 
-# @ray.remote(num_gpus=0.5, num_cpus=1)
+
 class Learner():
     def __init__(self, 
             cfg_path,
@@ -38,7 +35,13 @@ class Learner():
         for key in self.server.scan_iter():
             self.server.delete(key)    
 
-        self.memory = ReplayBuffer(buffer_size=self.buffer_size, batch_size=self.batch_size, seed=0, device=self.device, server=self.server)
+        self.memory = ReplayBuffer(
+            buffer_size=self.buffer_size,
+            batch_size=self.batch_size,
+            seed=0,
+            device=self.device,
+            server=self.server
+        )
         self.memory.start() # start thread's activity
 
         self.logger = Logger(writer=self.writer, server=self.server)
@@ -61,7 +64,7 @@ class Learner():
         self.gamma = self.cfg['gamma']
         self.lr_actor = self.cfg['lr_actor']
         self.lr_critic = self.cfg['lr_critic']
-        self.device = self.cfg['device']
+        self.device = torch.device(self.cfg['device'])
         self.batch_size = int(self.cfg['batch_size'])
         self.tau = self.cfg['tau']                     # soft update parameter
         self.reward_scale = self.cfg['reward_scale']
@@ -71,30 +74,37 @@ class Learner():
         self.total_step = 0
         self.episode_idx = 0
         self.update_delay = update_delay
+        self.datetime = str(datetime.now())[:-7]
         
         self.action_dim = 2
         self.state_dim = 8
         self.action_bound = [-1.0, 1.0]
 
-        self.log_file = './log/log_distributed_test/test_log.txt'
+        self.log_file = './log/log_LunarLander_Distributed_SAC/LunarLander_Distributed_SAC_log_{}.txt'.format(
+            self.datetime
+        )
 
-        self.save_model_path = 'saved_models/distributed_test/'
+        self.save_model_path = 'saved_models/LunarLander_Distributed_SAC/{}'.format(
+            self.datetime
+        )
         self.save_period = save_period
         if not os.path.exists(self.save_model_path):
             os.makedirs(self.save_model_path)
 
         self.write_mode = write_mode
         if self.write_mode:
-            self.writer = SummaryWriter('./log/log_distributed_test')
+            self.writer = SummaryWriter(
+                './log/log_LunarLander_Distributed_SAC/{}'.format(self.datetime)
+            )
 
     def build_model(self):
 
-        self.actor = Actor(self.state_dim, self.action_dim, self.device, self.action_bound, hidden_dim=[256,256])
+        self.actor = Actor(self.state_dim, self.action_dim, self.device, self.action_bound, hidden_dim=[256, 256])
         
-        self.local_critic_1 = Critic(self.state_dim, self.action_dim, self.device, hidden_dim=[256,256])
-        self.local_critic_2 = Critic(self.state_dim, self.action_dim, self.device, hidden_dim=[256,256])
-        self.target_critic_1 = Critic(self.state_dim, self.action_dim, self.device, hidden_dim=[256,256])
-        self.target_critic_2 = Critic(self.state_dim, self.action_dim, self.device, hidden_dim=[256,256])
+        self.local_critic_1 = Critic(self.state_dim, self.action_dim, self.device, hidden_dim=[256, 256])
+        self.local_critic_2 = Critic(self.state_dim, self.action_dim, self.device, hidden_dim=[256, 256])
+        self.target_critic_1 = Critic(self.state_dim, self.action_dim, self.device, hidden_dim=[256, 256])
+        self.target_critic_2 = Critic(self.state_dim, self.action_dim, self.device, hidden_dim=[256, 256])
        
         self.H_bar = torch.tensor([-self.action_dim]).to(self.device).float() # minimum entropy
         self.log_alpha = nn.Parameter(
@@ -265,7 +275,6 @@ class Learner():
         }
         return parameters
 
-
     def run(self):
         # initial parameter copy
         self.server.set('update_iteration', _pickle.dumps(-1))
@@ -282,7 +291,8 @@ class Learner():
         critic_loss_list = []
 
         for update_iteration in itertools.count():
-            if update_iteration % self.update_delay != 0 : continue
+            if update_iteration % self.update_delay != 0 :
+                continue
             critic_loss, actor_loss = self.update()
 
             self.server.set('update_iteration', _pickle.dumps(update_iteration))
@@ -293,7 +303,11 @@ class Learner():
                 actor_loss_list.append(actor_loss)
                 critic_loss_list.append(critic_loss)
                 if update_iteration % self.print_period == 0:
-                    content = '[Learner] Update_iteration: {0:<6} \t | actor_loss : {1:5.3f} \t | critic_loss : {2:5.3f}'.format(update_iteration, actor_loss, critic_loss)
+                    content = '[Learner] Update_iteration: {0:<6} \t | actor_loss : {1:5.3f} \t | critic_loss : {2:5.3f}'.format(
+                        update_iteration,
+                        actor_loss,
+                        critic_loss
+                    )
                     self.my_print(content)
                     actor_loss_list = []
                     critic_loss_list = []

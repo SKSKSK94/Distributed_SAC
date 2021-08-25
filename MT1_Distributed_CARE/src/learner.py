@@ -4,17 +4,13 @@ import numpy as np
 import torch.optim as optim
 from replay_buffer import ReplayBuffer
 from model import Actor, Critic
-import random
 import itertools
 import os
-import json
-import collections
 import time
 from torch.utils.tensorboard import SummaryWriter
 
-from utils import Decoder, cfg_read
+from utils import cfg_read
 
-import ray
 import redis
 import _pickle
 import copy
@@ -22,6 +18,7 @@ import copy
 from logger import Logger
 
 from context_encoder import contextEncoder
+
 
 class Learner():
     def __init__(self, 
@@ -70,7 +67,7 @@ class Learner():
         self.gamma = self.cfg['gamma']
         self.lr_actor = self.actor_cfg['lr_actor']
         self.lr_critic = self.critic_cfg['lr_critic']
-        self.device = self.cfg['device']
+        self.device = torch.device(self.cfg['device'])
         self.batch_size = int(self.cfg['batch_size'])
         self.tau = self.cfg['tau']                     # soft update parameter
         self.reward_scale = self.cfg['reward_scale']
@@ -113,8 +110,6 @@ class Learner():
 
         # tie encoders between actor and critic
         self.soft_update(self.local_critic.state_encoder, self.actor.state_encoder, tau=1.0)
-
-    
 
     def build_optimizer(self):
         # 1. context encoder optimizer
@@ -208,7 +203,6 @@ class Learner():
         alphas = self.log_alpha.exp().detach().cpu().numpy()
         alphas_data = (update_iteration, alphas)
         self.server.rpush('alpha', _pickle.dumps(alphas_data))
-        
             
     #### MT SAC ####
     def get_log_alpha(self, mtobss):
@@ -366,7 +360,6 @@ class Learner():
         }
         return parameters
 
-
     def run(self):
         # initial parameter copy
         self.server.set('update_iteration', _pickle.dumps(-1))
@@ -385,7 +378,8 @@ class Learner():
         for update_iteration in itertools.count():            
             update_iteration = update_iteration + self.update_iteration if update_iteration == 0 else update_iteration
 
-            if update_iteration % self.update_delay != 0 : continue
+            if update_iteration % self.update_delay != 0 : 
+                continue
 
             critic_loss, actor_loss, entropy = self.update()
 

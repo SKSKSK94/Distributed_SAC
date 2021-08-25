@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
-import json
 from utils import weights_init, build_mlp, cfg_read
+
 
 class contextEncoder(nn.Module):
     '''
@@ -92,4 +91,3 @@ class contextEncoder(nn.Module):
         z_context = self.mlp(self.embedding(taskIndices))
 
         return z_context
-

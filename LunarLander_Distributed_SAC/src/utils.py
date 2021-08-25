@@ -1,4 +1,6 @@
 import json
+
+
 class Decoder(json.JSONDecoder):
     def decode(self, s):
         result = super().decode(s)  # result = super(Decoder, self).decode(s) for Python 2.x
