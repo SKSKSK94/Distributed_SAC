@@ -41,18 +41,6 @@ class Logger(threading.Thread):
                 self.writer.add_text('hyperparams', str(k) + " : " + str(v), iteration)
                 iteration += 1
         return iteration
-
-    # def write_hyperparameters(self, cfg_path):
-    #     iteration = 0
-    #     cfg = cfg_read(path=cfg_path)
-    #     for k, v in cfg.items():
-    #         if isinstance(v, dict):
-    #             for k_, v_ in v.items():
-    #                 self.writer.add_text('hyperparams', str(k_)+" : " + str(v_), iteration)
-    #                 iteration += 1
-    #         else:
-    #             self.writer.add_text('hyperparams', str(k) + " : " + str(v), iteration)
-    #             iteration += 1
     
     def run(self):
         while True:
