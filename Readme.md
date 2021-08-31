@@ -13,3 +13,11 @@ Choose one of these.
 3. To run `MT1_Distributed_CARE`, `python3 MT1_Distributed_CARE/src/main.py`
 4. To run `MT10_Distributed_MTSAC`, `python3 MT10_Distributed_MTSAC/src/main.py`
 5. To run `MT10_Distributed_CARE`, `python3 MT10_Distributed_CARE/src/main.py`
+
+### Reference papers
+
+[Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor](https://arxiv.org/abs/1801.01290)
+[Soft Actor-Critic Algorithms and Applications](https://arxiv.org/abs/1812.05905)
+[Meta-World: A Benchmark and Evaluation for Multi-Task and Meta Reinforcement Learning](https://arxiv.org/abs/1910.10897)
+[Multi-Task Reinforcement Learning with Soft Modularization](https://arxiv.org/abs/2003.13661)
+[Multi-Task Reinforcement Learning with Context-based Representations](https://arxiv.org/abs/2102.06177)
