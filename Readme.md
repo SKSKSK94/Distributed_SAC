@@ -16,8 +16,8 @@ Choose one of these.
 
 ### Reference papers
 
-[Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor](https://arxiv.org/abs/1801.01290)
-[Soft Actor-Critic Algorithms and Applications](https://arxiv.org/abs/1812.05905)
-[Meta-World: A Benchmark and Evaluation for Multi-Task and Meta Reinforcement Learning](https://arxiv.org/abs/1910.10897)
-[Multi-Task Reinforcement Learning with Soft Modularization](https://arxiv.org/abs/2003.13661)
-[Multi-Task Reinforcement Learning with Context-based Representations](https://arxiv.org/abs/2102.06177)
+1. [Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor](https://arxiv.org/abs/1801.01290)
+2. [Soft Actor-Critic Algorithms and Applications](https://arxiv.org/abs/1812.05905)
+3. [Meta-World: A Benchmark and Evaluation for Multi-Task and Meta Reinforcement Learning](https://arxiv.org/abs/1910.10897)
+4. [Multi-Task Reinforcement Learning with Soft Modularization](https://arxiv.org/abs/2003.13661)
+5. [Multi-Task Reinforcement Learning with Context-based Representations](https://arxiv.org/abs/2102.06177)
