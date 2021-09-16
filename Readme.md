@@ -14,6 +14,12 @@ Choose one of these.
 4. To run `MT10_Distributed_MTSAC`, `python3 MT10_Distributed_MTSAC/src/main.py`
 5. To run `MT10_Distributed_CARE`, `python3 MT10_Distributed_CARE/src/main.py`
 
+### Test environment
+
+- CPU : i7-6700k
+- GPU : GTX 1080
+- OS : Ubuntu 18.04
+
 ### Reference papers
 
 1. [Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor](https://arxiv.org/abs/1801.01290)
